@@ -4,19 +4,14 @@ import (
 	"encoding/binary"
 	"fmt"
 	"reflect"
+	"sync"
 	"testing"
-
-	"github.com/pkg/errors"
+	"time"
 
 	"github.com/Apakhov/cube/cubeapi/oauth2"
+	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
-
-func TestCreateRespBuffer(t *testing.T) {
-	buf := oauth2.CreateRespBuffer([]byte{1, 1, 1, 1})
-	if buf.Len() != 4 {
-		printDiffInfo(t, 4, buf.Len())
-	}
-}
 
 func buildString(str string) []byte {
 	buf := make([]byte, 4)
@@ -60,44 +55,141 @@ func TestParseOAUTH2RespOKCode(t *testing.T) {
 		ErrorString: "",
 	}
 	buf := oauth2.CreateRespBuffer(testBytes)
-	res, err := buf.ParseOAUTH2Resp()
+	var res oauth2.ResponseOAUTH2
+	buf.ParseOAUTH2Resp(&res)
+
+	err := buf.Error()
 
 	if err != nil {
-		printDiffInfo(t, nil, err.Error(), "expected no error")
+		require.Equal(t, nil, err.Error(), "expected no error")
 		return
 	}
 	if err == nil && !reflect.DeepEqual(exp, res) {
-		printDiffInfo(t, exp, res, "result difference")
+		require.Equal(t, exp, res, "result difference")
 	}
 }
 
+func TestParseOAUTH2RespOKCodeParts(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	for p := 0; p < 500; p++ {
+		wg.Add(1)
+		go func() {
+			testBytes := []byte{}
+
+			buf := oauth2.CreateRespBuffer(testBytes)
+			testBytes = append(testBytes, buildInt32(0x2)...)                 // svc id
+			testBytes = append(testBytes, buildInt32(0x0)...)                 // body len, unknown yet
+			testBytes = append(testBytes, buildInt32(0x1)...)                 // request id
+			testBytes = append(testBytes, buildInt32(0x0)...)                 // return code
+			testBytes = append(testBytes, buildString("test_client_id")...)   // client id
+			testBytes = append(testBytes, buildInt32(2002)...)                // client type
+			testBytes = append(testBytes, buildString("testuser@mail.ru")...) // username
+			testBytes = append(testBytes, buildInt32(3600)...)                // expires in
+			testBytes = append(testBytes, buildInt64(101010)...)              // user id
+			// inserting body length
+			binary.LittleEndian.PutUint32(testBytes[4:8], uint32(len(testBytes)-12))
+
+			var res oauth2.ResponseOAUTH2
+
+			exp := oauth2.ResponseOAUTH2{
+				ReturnCode:  oauth2.CubeOAUTH2ErrCodeOK,
+				CliendID:    "test_client_id",
+				ClientType:  2002,
+				Username:    "testuser@mail.ru",
+				ExpiresIn:   3600,
+				UserID:      101010,
+				ErrorString: "",
+			}
+
+			go func() {
+				buf.ParseOAUTH2Resp(&res)
+				buf.End()
+			}()
+
+			for l := 0; l < len(testBytes); l += 10 {
+				time.Sleep(time.Millisecond * 50)
+				r := l + 10
+				if r > len(testBytes) {
+					r = len(testBytes)
+				}
+				buf.Write(testBytes[l:r])
+			}
+			buf.Finished()
+
+			buf.Wait()
+
+			err := buf.Error()
+
+			if err != nil {
+				require.Equal(t, nil, err.Error(), "expected no error")
+				return
+			}
+
+			if err == nil && !reflect.DeepEqual(exp, res) {
+				require.Equal(t, exp, res, "result difference")
+				return
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+
 func TestParseOAUTH2RespErrCode(t *testing.T) {
-	testBytes := []byte{}
-	//header
-	testBytes = append(testBytes, buildInt32(0x2)...) // svc id
-	testBytes = append(testBytes, buildInt32(0x0)...) // body len, unknown yet
-	testBytes = append(testBytes, buildInt32(0x1)...) // request id
-	//body
-	testBytes = append(testBytes, buildInt32(oauth2.CubeOAUTH2ErrCodeBadClient)...) // return code
-	testBytes = append(testBytes, buildString("lol you died")...)                   // error string
-	// inserting body length
-	binary.LittleEndian.PutUint32(testBytes[4:8], uint32(len(testBytes)-12))
+	wg := &sync.WaitGroup{}
+	for p := 0; p < 100; p++ {
+		wg.Add(1)
+		go func() {
+			testBytes := []byte{}
 
-	exp := oauth2.ResponseOAUTH2{
-		ReturnCode: oauth2.CubeOAUTH2ErrCodeBadClient,
+			buf := oauth2.CreateRespBuffer(testBytes)
+			//header
+			testBytes = append(testBytes, buildInt32(0x2)...) // svc id
+			testBytes = append(testBytes, buildInt32(0x0)...) // body len, unknown yet
+			testBytes = append(testBytes, buildInt32(0x1)...) // request id
+			//body
+			testBytes = append(testBytes, buildInt32(oauth2.CubeOAUTH2ErrCodeBadClient)...) // return code
+			testBytes = append(testBytes, buildString("lol you died")...)                   // error string
+			// inserting body length
+			binary.LittleEndian.PutUint32(testBytes[4:8], uint32(len(testBytes)-12))
+			var res oauth2.ResponseOAUTH2
 
-		ErrorString: "lol you died",
-	}
-	buf := oauth2.CreateRespBuffer(testBytes)
-	res, err := buf.ParseOAUTH2Resp()
+			exp := oauth2.ResponseOAUTH2{
+				ReturnCode: oauth2.CubeOAUTH2ErrCodeBadClient,
 
-	if err != nil {
-		printDiffInfo(t, nil, err.Error(), "expected no error")
-		return
+				ErrorString: "lol you died",
+			}
+
+			go func() {
+				buf.ParseOAUTH2Resp(&res)
+				buf.End()
+			}()
+
+			for l := 0; l < len(testBytes); l += 2 {
+				time.Sleep(time.Millisecond * 50)
+				r := l + 2
+				if r > len(testBytes) {
+					r = len(testBytes)
+				}
+				buf.Write(testBytes[l:r])
+			}
+			buf.Finished()
+
+			buf.Wait()
+
+			err := buf.Error()
+
+			if err != nil {
+				require.Equal(t, nil, err.Error(), "expected no error")
+				return
+			}
+			if err == nil && !reflect.DeepEqual(exp, res) {
+				require.Equal(t, exp, res, "result difference")
+			}
+			wg.Done()
+		}()
 	}
-	if err == nil && !reflect.DeepEqual(exp, res) {
-		printDiffInfo(t, exp, res, "result difference")
-	}
+	wg.Wait()
 }
 
 func flat(bss ...[]byte) []byte {
@@ -121,7 +213,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x1), // incorrect body length
 			buildInt32(0x1),
 		),
-		err: oauth2.ErrIncorrectBodyLen,
+		err: oauth2.ErrNotEnoughData,
 	},
 	{
 		bytes: []byte{}, // no header
@@ -228,14 +320,17 @@ func TestParseOAUTH2RespErr(t *testing.T) {
 
 		}
 		buf := oauth2.CreateRespBuffer(testBytes)
-		_, err := buf.ParseOAUTH2Resp()
+		buf.Finished()
+		var res oauth2.ResponseOAUTH2
+		buf.ParseOAUTH2Resp(&res)
 
+		err := buf.Error()
 		if err == nil || errors.Cause(err) != c.err {
 			errStr := ""
 			if err != nil {
 				errStr = err.Error()
 			}
-			printDiffInfo(t, c.err.Error(), errStr, fmt.Sprintf("%d expected error ", i))
+			require.Equal(t, c.err.Error(), errStr, fmt.Sprintf("%d expected error ", i))
 		}
 	}
 }

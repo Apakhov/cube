@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io"
@@ -27,7 +26,7 @@ func init() {
 	fs.StringVar(scope, "s", "", "scope of the token, non-empty string")
 
 	fs.Usage = func() {
-		fmt.Println(`Usage of cube: 
+		fmt.Println(`Usage of cube:
 	cube host port token scope
 or with flags:`)
 
@@ -114,28 +113,42 @@ func main() {
 	}
 
 	respBuf := make([]byte, buffLen)
-	response := bytes.NewBuffer(make([]byte, 0, 0))
+	r := new(oauth2.ResponseOAUTH2)
+	response := oauth2.CreateRespBuffer([]byte{})
+	go func() {
+		response.ParseOAUTH2Resp(r)
+		response.End()
+	}()
 	var readed int
 	err = nil
-	for {
-		readed, err = conn.Read(respBuf)
-		fmt.Printf("pieceLen: %d `%s` %v\n", readed, string(respBuf[:readed]), respBuf[:readed])
 
-		response.Write(respBuf[:readed])
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("failed to read from connection", err.Error())
-			os.Exit(-1)
+CONNECT_LOOP:
+	for {
+		select {
+		case <-response.WaitChan():
+			break CONNECT_LOOP
+		default:
+			readed, err = conn.Read(respBuf)
+			fmt.Printf("pieceLen: %d `%s` %v\n", readed, string(respBuf[:readed]), respBuf[:readed])
+
+			response.Write(respBuf[:readed])
+			if err == io.EOF {
+				break CONNECT_LOOP
+			}
+			if err != nil {
+				fmt.Println("failed to read from connection", err.Error())
+				os.Exit(-1)
+			}
 		}
 	}
+	response.Finished()
+	<-response.WaitChan()
 
-	fmt.Println(response.String())
-	r, err := oauth2.CreateRespBuffer(response.Bytes()).ParseOAUTH2Resp()
-
+	err = response.Error()
 	if err != nil {
 		fmt.Println("failed to parse response", err.Error())
+		os.Exit(0)
 	}
 	fmt.Println(r.String())
+	fmt.Printf("%+v", *r)
 }

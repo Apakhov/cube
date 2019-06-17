@@ -9,6 +9,7 @@ type Header struct {
 
 const headerLen = 12
 
+const int8Len = 1
 const int32Len = 4
 const int64Len = 8
 

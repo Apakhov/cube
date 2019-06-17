@@ -14,9 +14,3 @@ expected:
 got:
 	%+v`, info, expected, got)
 }
-
-func replicate(a []byte) []byte {
-	b := make([]byte, len(a))
-	copy(b, a)
-	return b
-}

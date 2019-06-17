@@ -74,7 +74,7 @@ func errInfoByCode(c int32) (string, string) {
 }
 
 func (r *ResponseOAUTH2) String() string {
-	if r.ReturnCode == CubeOAUTH2ErrCodeOK {
+	if r.ReturnCode != CubeOAUTH2ErrCodeOK {
 		errStr, errDescr := errInfoByCode(r.ReturnCode)
 		return fmt.Sprintf(`error: %s
 message: %s`, errStr, errDescr)
