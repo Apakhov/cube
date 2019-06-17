@@ -85,7 +85,6 @@ func main() {
 	}
 	defer conn.Close()
 	fmt.Println("connected")
-
 	err = conn.SetWriteDeadline(deadline)
 	if err != nil {
 		fmt.Println("failed to set write deadline", err.Error())
@@ -103,9 +102,8 @@ func main() {
 		fmt.Println("failed to create request", err.Error())
 		os.Exit(-1)
 	}
-	fmt.Println(buf.Bytes(), "buf")
-	fmt.Println(string(buf.Bytes()), "str")
 
+	fmt.Println("reading")
 	_, err = conn.Write(buf.Bytes())
 	if err != nil {
 		fmt.Println("failed to write to connection", err.Error())
@@ -121,7 +119,7 @@ func main() {
 	}()
 	var readed int
 	err = nil
-
+	sum := 0
 CONNECT_LOOP:
 	for {
 		select {
@@ -129,7 +127,7 @@ CONNECT_LOOP:
 			break CONNECT_LOOP
 		default:
 			readed, err = conn.Read(respBuf)
-			fmt.Printf("pieceLen: %d `%s` %v\n", readed, string(respBuf[:readed]), respBuf[:readed])
+			sum += readed
 
 			response.Write(respBuf[:readed])
 			if err == io.EOF {
@@ -141,14 +139,14 @@ CONNECT_LOOP:
 			}
 		}
 	}
+
 	response.Finished()
 	<-response.WaitChan()
 
 	err = response.Error()
 	if err != nil {
 		fmt.Println("failed to parse response", err.Error())
-		os.Exit(0)
+		os.Exit(-1)
 	}
 	fmt.Println(r.String())
-	fmt.Printf("%+v", *r)
 }

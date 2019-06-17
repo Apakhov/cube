@@ -7,6 +7,7 @@ import (
 
 	"github.com/Apakhov/cube/cubeapi/oauth2"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateOAUTH2Request(t *testing.T) {
@@ -14,11 +15,11 @@ func TestCreateOAUTH2Request(t *testing.T) {
 
 	buf, err := oauth2.CreateOAUTH2Request("token", "scope")
 	if err != nil {
-		printDiffInfo(t, nil, err.Error(), "expected no error")
+		require.Equal(t, nil, err.Error(), "expected no error")
 		return
 	}
 	if !bytes.Equal(buf.Bytes(), testBytes) {
-		printDiffInfo(t, buf.Bytes(), testBytes)
+		require.Equal(t, buf.Bytes(), testBytes)
 	}
 }
 
@@ -30,7 +31,7 @@ func TestCreateOAUTH2RequestErr(t *testing.T) {
 			errStr = err.Error()
 		}
 		t.Logf("%+v <-> %+v", errors.Cause(err), oauth2.ErrStringTooLong)
-		printDiffInfo(t, oauth2.ErrStringTooLong.Error(), errStr, "expected error 1")
+		require.Equal(t, oauth2.ErrStringTooLong.Error(), errStr, "expected error 1")
 	}
 	_, err = oauth2.CreateOAUTH2Request("test", string(make([]byte, int64(math.MaxInt32)+1, int64(math.MaxInt32)+1)))
 	if err == nil || errors.Cause(err) != oauth2.ErrStringTooLong {
@@ -38,6 +39,6 @@ func TestCreateOAUTH2RequestErr(t *testing.T) {
 		if err != nil {
 			errStr = err.Error()
 		}
-		printDiffInfo(t, oauth2.ErrStringTooLong.Error(), errStr, "expected error 2")
+		require.Equal(t, oauth2.ErrStringTooLong.Error(), errStr, "expected error 2")
 	}
 }

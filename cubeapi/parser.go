@@ -93,77 +93,59 @@ func (buf *RespBuffer) blockForBytes(amount int) bool {
 }
 
 // ParseHeader parses header
-func (buf *RespBuffer) ParseHeader(h *Header) {
-	buf.ParseInt32(&h.SvcID)
-	buf.ParseInt32(&h.BodyLength)
-	buf.ParseInt32(&h.RequestID)
+func (buf *RespBuffer) ParseHeader(h *Header) (parsed int) {
+	parsed += buf.ParseInt32(&h.SvcID)
+	parsed += buf.ParseInt32(&h.BodyLength)
+	parsed += buf.ParseInt32(&h.RequestID)
 	buf.loadError("failed to parse header")
-
+	return
 }
 
-// // ParseByte parses byte
-// func (buf *RespBuffer) ParseByte(b *byte) {
-// 	if buf.err != nil || !buf.blockForBytes(1) {
-// 		buf.createError(ErrNotEnoughData, "failed to parse byte")
-// 		return
-// 	}
-// 	*b = buf.buffer.Next(1)[0]
-// }
-
 // ParseInt32 parses int32
-func (buf *RespBuffer) ParseInt32(i *int32) {
+func (buf *RespBuffer) ParseInt32(i *int32) (parsed int) {
 	if buf.err != nil || !buf.blockForBytes(int32Len) {
 		buf.createError(ErrNotEnoughData, "failed to parse int32")
 		return
 	}
 	*i = int32(binary.LittleEndian.Uint32(buf.buffer.Next(int32Len)))
-
+	return int32Len
 }
 
 // ParseInt64 parses int64
-func (buf *RespBuffer) ParseInt64(i *int64) {
+func (buf *RespBuffer) ParseInt64(i *int64) (parsed int) {
 	if buf.err != nil || !buf.blockForBytes(int64Len) {
 		buf.createError(ErrNotEnoughData, "failed to parse int64")
 		return
 	}
 	*i = int64(binary.LittleEndian.Uint64(buf.buffer.Next(int64Len)))
-
+	return int64Len
 }
 
 // ParseString parses string
-func (buf *RespBuffer) ParseString(s *string) {
+func (buf *RespBuffer) ParseString(s *string) (parsed int) {
 	var strLen int32
-	buf.parseStrLen(&strLen)
-	buf.parseStr(s, strLen)
+	parsed += buf.parseStrLen(&strLen)
+	parsed += buf.parseStr(s, strLen)
 	buf.loadError("failed to parse string")
-
+	return
 }
 
-func (buf *RespBuffer) parseStrLen(strLen *int32) {
-	buf.ParseInt32(strLen)
+func (buf *RespBuffer) parseStrLen(strLen *int32) (parsed int) {
+	parsed += buf.ParseInt32(strLen)
 	if buf.loadError("failed to parse str len") {
 		return
 	}
-
 	if *strLen < 0 {
 		buf.createError(ErrIncorrectData, "failed to parse str len: value < 0")
 	}
+	return
 }
 
-func (buf *RespBuffer) parseStr(s *string, strLen int32) {
+func (buf *RespBuffer) parseStr(s *string, strLen int32) (parsed int) {
 	if buf.err != nil || !buf.blockForBytes(int(strLen)) {
 		buf.createError(ErrNotEnoughData, "failed to parse str")
 		return
 	}
 	*s = string(buf.buffer.Next(int(strLen)))
+	return int(strLen)
 }
-
-// str := make([]byte, int(strLen))
-// 	for i := 0; i < int(strLen); i++ {
-// 		buf.ParseByte(&str[i])
-// 		if buf.loadError("failed to parse str") {
-// 			return
-// 		}
-// 	}
-
-// 	*s = string(str)

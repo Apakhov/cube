@@ -11,13 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func TestCreateRespBuffer(t *testing.T) {
-// 	buf := cubeapi.CreateRespBuffer([]byte{1, 1, 1, 1})
-// 	if buf.Len() != 4 {
-// 		require.Equal(t, 4, buf.Len())
-// 	}
-// }
-
 func TestParseHeader(t *testing.T) {
 	testBytes := []byte{0x4, 0, 0, 0, 0x16, 0, 0, 0, 0x3, 0, 0, 0}
 

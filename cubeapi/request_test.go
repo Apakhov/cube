@@ -7,13 +7,14 @@ import (
 
 	"github.com/Apakhov/cube/cubeapi"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWriteHeader(t *testing.T) {
 	buf := cubeapi.CreateSendBuffer()
 	buf.WriteHeader(0x1, 0x2)
 	if !bytes.Equal(buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0}) {
-		printDiffInfo(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0})
+		require.Equal(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0})
 	}
 }
 
@@ -22,14 +23,14 @@ func TestWriteInt32(t *testing.T) {
 	buf.WriteInt32(0x42)
 	buf.WriteHeader(0x1, 0x2)
 	if !bytes.Equal(buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x42, 0, 0, 0}) {
-		printDiffInfo(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x42, 0, 0, 0}, "case 1")
+		require.Equal(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x42, 0, 0, 0}, "case 1")
 	}
 
 	buf = cubeapi.CreateSendBuffer()
 	buf.WriteInt32(0x42056784)
 	buf.WriteHeader(0x1, 0x2)
 	if !bytes.Equal(buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x84, 0x67, 0x05, 0x42}) {
-		printDiffInfo(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x84, 0x67, 0x05, 0x42}, "case 2")
+		require.Equal(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x84, 0x67, 0x05, 0x42}, "case 2")
 	}
 }
 
@@ -39,11 +40,11 @@ func TestWriteString(t *testing.T) {
 	str := string([]byte{1, 2, 3, 4, 5, 6, 7, 8})
 	err := buf.WriteString(str)
 	if err != nil {
-		printDiffInfo(t, nil, err.Error(), "expected no error")
+		require.Equal(t, nil, err.Error(), "expected no error")
 		return
 	}
 	if !bytes.Equal(buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x8, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8}) {
-		printDiffInfo(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x8, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8})
+		require.Equal(t, buf.Bytes(), []byte{1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0x8, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8})
 	}
 }
 
@@ -56,7 +57,7 @@ func TestWriteStringErr(t *testing.T) {
 		if err != nil {
 			errStr = err.Error()
 		}
-		printDiffInfo(t, cubeapi.ErrStringTooLong.Error(), errStr, "expected error")
+		require.Equal(t, cubeapi.ErrStringTooLong.Error(), errStr, "expected error")
 		return
 	}
 }
@@ -70,7 +71,7 @@ func TestWriteInt32OnPosErr(t *testing.T) {
 		if err != nil {
 			errStr = err.Error()
 		}
-		printDiffInfo(t, cubeapi.ErrBadWritingPos.Error(), errStr, "expected error")
+		require.Equal(t, cubeapi.ErrBadWritingPos.Error(), errStr, "expected error")
 		return
 	}
 }
