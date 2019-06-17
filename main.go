@@ -8,6 +8,8 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"github.com/Apakhov/cube/cubeapi/oauth2"
 )
 
 var fs = flag.NewFlagSet("cube", flag.ContinueOnError)
@@ -100,15 +102,15 @@ func main() {
 	}
 
 	fmt.Println("writing")
-	buf, err := oauth2.createOAUTH2Request(*token, *scope)
+	buf, err := oauth2.CreateOAUTH2Request(*token, *scope)
 	if err != nil {
 		fmt.Println("failed to create request", err.Error())
 		os.Exit(-1)
 	}
-	fmt.Println(buf, "buf")
-	fmt.Println(bytes.NewBuffer(buf).String(), "str")
+	fmt.Println(buf.Bytes(), "buf")
+	fmt.Println(string(buf.Bytes()), "str")
 
-	_, err = conn.Write(buf)
+	_, err = conn.Write(buf.Bytes())
 	if err != nil {
 		fmt.Println("failed to write to connection", err.Error())
 		os.Exit(-1)
@@ -133,9 +135,10 @@ func main() {
 	}
 
 	fmt.Println(response.String())
-	r, err := oauth2.parseOAUTH2Resp(response)
+	r, err := oauth2.CreateRespBuffer(response.Bytes()).ParseOAUTH2Resp()
+
 	if err != nil {
 		fmt.Println("failed to parse response", err.Error())
 	}
-	fmt.Printf("%+v", r)
+	fmt.Println(r.String())
 }
