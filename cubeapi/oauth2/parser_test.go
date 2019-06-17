@@ -115,7 +115,7 @@ type parseOAUTH2RespErrCase struct {
 }
 
 var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x1), // incorrect body length
@@ -123,11 +123,11 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		),
 		err: oauth2.ErrIncorrectBodyLen,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: []byte{}, // no header
 		err:   oauth2.ErrNotEnoughData,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x43534534), // incorrect svcID
 			buildInt32(0x1),
@@ -135,7 +135,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		),
 		err: oauth2.ErrIncorrectSVCID,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat( // no body
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -143,7 +143,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		),
 		err: oauth2.ErrNotEnoughData,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -153,7 +153,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		err:    oauth2.ErrNotEnoughData,
 		blCorr: true,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -163,7 +163,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		err:    oauth2.ErrNotEnoughData,
 		blCorr: true,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -175,7 +175,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		err:    oauth2.ErrNotEnoughData,
 		blCorr: true,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -188,7 +188,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		err:    oauth2.ErrNotEnoughData,
 		blCorr: true,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),
@@ -202,7 +202,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 		err:    oauth2.ErrNotEnoughData,
 		blCorr: true,
 	},
-	parseOAUTH2RespErrCase{
+	{
 		bytes: flat(
 			buildInt32(0x2),
 			buildInt32(0x0),

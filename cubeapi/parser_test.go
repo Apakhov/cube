@@ -41,9 +41,9 @@ func TestParseHeader(t *testing.T) {
 
 func TestParseHeaderErr(t *testing.T) {
 	testBytess := [][]byte{
-		[]byte{0x4, 0, 0, 0, 0x16, 0, 0, 0x3, 0, 0, 0},
-		[]byte{0x4, 0, 0, 0, 0},
-		[]byte{},
+		{0x4, 0, 0, 0, 0x16, 0, 0, 0x3, 0, 0, 0},
+		{0x4, 0, 0, 0, 0},
+		{},
 	}
 	for i, testBytes := range testBytess {
 		res := &cubeapi.Header{}
