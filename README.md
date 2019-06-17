@@ -1,5 +1,6 @@
 # cube
 [![GoDoc](https://godoc.org/github.com/Apakhov/cube/cubeapi?status.svg)](https://godoc.org/github.com/Apakhov/cube/cubeapi)
+[![rcard](https://goreportcard.com/badge/github.com/Apakhov/cube)](https://goreportcard.com/report/github.com/Apakhov/cube)
 
 make all - test and build
 
