@@ -71,7 +71,7 @@ func TestParseString(t *testing.T) {
 		"string",
 		`long string with whitespaces, 		tabs,
 		
-		new lines, ` + " and wierd symbols \n\t\r\\" + "and hmuric :(",
+		new lines, ` + " and weird symbols \n\t\r\\" + "and hmuric :(",
 	}
 	for i, testStr := range testStrs {
 		res := testStr

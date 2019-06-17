@@ -1,4 +1,5 @@
 # cube
+[![GoDoc](https://godoc.org/github.com/Apakhov/cube/cubeapi?status.svg)](https://godoc.org/github.com/Apakhov/cube/cubeapi)
 
 make all - test and build
 

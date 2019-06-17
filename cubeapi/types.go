@@ -1,6 +1,6 @@
 package cubeapi
 
-// Header represents header od response and request
+// Header represents header of response and request
 type Header struct {
 	SvcID      int32
 	BodyLength int32

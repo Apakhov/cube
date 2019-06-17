@@ -74,15 +74,15 @@ func main() {
 	curParam = checkStringFlag(host, "host", curParam)
 	curParam = checkIntFlag(port, "port", curParam)
 	curParam = checkStringFlag(token, "token", curParam)
-	curParam = checkStringFlag(scope, "scope", curParam)
+	checkStringFlag(scope, "scope", curParam)
 
-	adress := fmt.Sprintf("%s:%d", *host, *port)
+	address := fmt.Sprintf("%s:%d", *host, *port)
 
 	var err error
 	deadline := time.Now().Add(time.Second * time.Duration(*secondsToOperate))
 
-	fmt.Println("connecting to", adress)
-	conn, err := net.DialTimeout("tcp", adress, time.Second*time.Duration(*secondsToOperate))
+	fmt.Println("connecting to", address)
+	conn, err := net.DialTimeout("tcp", address, time.Second*time.Duration(*secondsToOperate))
 	if err != nil {
 		fmt.Println("failed to dial tcp", err.Error())
 		os.Exit(-1)
