@@ -213,7 +213,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x1), // incorrect body length
 			buildInt32(0x1),
 		),
-		err: oauth2.ErrNotEnoughData,
+		err: oauth2.ErrIncorrectLen,
 	},
 	{
 		bytes: []byte{}, // no header
@@ -233,7 +233,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x0),
 			buildInt32(0x1),
 		),
-		err: oauth2.ErrNotEnoughData,
+		err: oauth2.ErrIncorrectLen,
 	},
 	{
 		bytes: flat(
@@ -242,7 +242,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x1),
 			buildInt32(0x2), // incorrect svc error response body (no error string)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 	{
@@ -252,7 +252,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x1),
 			buildInt32(0x0), // incorrect svc ok response body (no client id)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 	{
@@ -264,7 +264,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildString("client id"), // client id
 			// incorrect svc ok response body (no client type)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 	{
@@ -277,7 +277,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x0),          // client type
 			buildInt32(0x32),         // incorrect svc ok response body (incorrect username)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 	{
@@ -291,7 +291,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildString("username"),  // incorrect svc ok response body (incorrect username)
 			// incorrect svc ok response body (no expires in)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 	{
@@ -306,7 +306,7 @@ var parseOAUTH2RespErrCases = []parseOAUTH2RespErrCase{
 			buildInt32(0x35),         // expires in
 			buildInt32(0x35),         // incorrect svc ok response body (incorrect user id)
 		),
-		err:    oauth2.ErrNotEnoughData,
+		err:    oauth2.ErrIncorrectLen,
 		blCorr: true,
 	},
 }

@@ -7,7 +7,7 @@ type Header struct {
 	RequestID  int32
 }
 
-const headerLen = 12
+const HeaderLen = 12
 
 const int8Len = 1
 const int32Len = 4
@@ -43,6 +43,10 @@ var (
 	// ErrIncorrectBodyLen incorrect body length
 	ErrIncorrectBodyLen = &Error{
 		msg: "Incorrect body length",
+	}
+	// ErrIncorrectLen incorrect length of element
+	ErrIncorrectLen = &Error{
+		msg: "Incorrect length of element",
 	}
 	// ErrIncorrectSVCID incorrect svc id
 	ErrIncorrectSVCID = &Error{

@@ -67,5 +67,5 @@ func (buf *SendBuffer) WriteStr(s string) {
 
 // CreateSendBuffer creates SendBuffer
 func CreateSendBuffer() *SendBuffer {
-	return &SendBuffer{make([]byte, headerLen, headerLen)}
+	return &SendBuffer{make([]byte, HeaderLen, HeaderLen)}
 }

@@ -36,6 +36,10 @@ var (
 	ErrIncorrectBodyLen = &Error{
 		msg: "oauth2: Incorrect body length",
 	}
+	// ErrIncorrectLen incorrect length of element
+	ErrIncorrectLen = &Error{
+		msg: "oauth2: Incorrect length of element",
+	}
 	// ErrIncorrectSVCID incorrect svc id
 	ErrIncorrectSVCID = &Error{
 		msg: "oauth2: Incorrect svc id",
@@ -60,6 +64,8 @@ func switchError(e error) *Error {
 			return ErrBadWritingPos
 		case cubeapi.ErrIncorrectBodyLen:
 			return ErrIncorrectBodyLen
+		case cubeapi.ErrIncorrectLen:
+			return ErrIncorrectLen
 		case cubeapi.ErrIncorrectSVCID:
 			return ErrIncorrectSVCID
 		default:

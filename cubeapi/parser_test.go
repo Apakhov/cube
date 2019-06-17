@@ -21,6 +21,7 @@ func TestParseHeader(t *testing.T) {
 	}
 	res := &cubeapi.Header{}
 	buf := cubeapi.CreateRespBuffer(testBytes)
+	buf.IncreaseParseLim(cubeapi.HeaderLen)
 	buf.ParseHeader(res)
 
 	err := buf.Error()
@@ -43,6 +44,7 @@ func TestParseHeaderSlow(t *testing.T) {
 	}
 	res := &cubeapi.Header{}
 	buf := cubeapi.CreateRespBuffer(testBytes[:6])
+	buf.IncreaseParseLim(cubeapi.HeaderLen)
 	go func() {
 		buf.ParseHeader(res)
 		buf.End()
@@ -71,6 +73,8 @@ func TestParseHeaderErr(t *testing.T) {
 	for i, testBytes := range testBytess {
 		res := &cubeapi.Header{}
 		buf := cubeapi.CreateRespBuffer(testBytes)
+		buf.IncreaseParseLim(cubeapi.HeaderLen)
+
 		go func() {
 			buf.ParseHeader(res)
 			buf.End()
@@ -105,6 +109,7 @@ func TestParseString(t *testing.T) {
 	for i, testStr := range testStrs {
 		res := testStr
 		buf := cubeapi.CreateRespBuffer(buildString(testStr))
+		buf.IncreaseParseLim(int64(len(buildString(testStr))))
 		go func() {
 			buf.ParseString(&res)
 			buf.End()
@@ -130,12 +135,13 @@ func TestParseStringErr(t *testing.T) {
 	}{
 		{[]byte{1, 1}, cubeapi.ErrNotEnoughData},
 		{[]byte{0x4, 0, 0, 0}, cubeapi.ErrNotEnoughData},
-		{[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, cubeapi.ErrNotEnoughData},
+		{[]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, cubeapi.ErrIncorrectLen},
 		{[]byte{0x00, 0x00, 0x00, 0xF0}, cubeapi.ErrIncorrectData},
 	}
 	for i, testCase := range testCases {
 		var res string
 		buf := cubeapi.CreateRespBuffer(testCase.str)
+		buf.IncreaseParseLim(100)
 		buf.Finished()
 
 		go func() {
@@ -161,6 +167,7 @@ func TestParseInt64(t *testing.T) {
 	exp := int64(42)
 	var res int64
 	buf := cubeapi.CreateRespBuffer(testBytes)
+	buf.IncreaseParseLim(8)
 	buf.ParseInt64(&res)
 
 	err := buf.Error()
@@ -179,6 +186,7 @@ func TestParseInt64Err(t *testing.T) {
 	exp := cubeapi.ErrNotEnoughData
 	var res int64
 	buf := cubeapi.CreateRespBuffer(testBytes)
+	buf.IncreaseParseLim(8)
 
 	go func() {
 		buf.ParseInt64(&res)

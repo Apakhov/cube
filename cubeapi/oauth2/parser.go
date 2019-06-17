@@ -32,7 +32,7 @@ func (buf *RespBuffer) createError(err error, msg string) {
 	}
 }
 
-func (buf *RespBuffer) loadError(msg string) (written bool) {
+func (buf *RespBuffer) checkError(msg string) (written bool) {
 	if buf.buffer.Error() != nil && buf.err == nil {
 		buf.err = switchError(buf.buffer.Error())
 	}
@@ -57,103 +57,105 @@ func (buf *RespBuffer) WaitChan() <-chan struct{} {
 }
 
 // ParseOAUTH2Resp parses oauth2 response
-func (buf *RespBuffer) ParseOAUTH2Resp(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) ParseOAUTH2Resp(r *ResponseOAUTH2) {
 	h := &cubeapi.Header{}
-	parsed += buf.buffer.ParseHeader(h)
-	buf.loadError("failed to parse OAUTH2 response")
+	buf.buffer.IncreaseParseLim(cubeapi.HeaderLen)
+	buf.buffer.ParseHeader(h)
+	buf.checkError("failed to parse OAUTH2 response")
 	if buf.err != nil {
 		return
 	}
-	headerLen := parsed
 	if h.SvcID != cubeOAUTH2SvcID {
 		buf.createError(ErrIncorrectSVCID, "failed to parse OAUTH2 response")
 		return
 	}
-	parsed += buf.parseOAUTH2RespBody(r)
-	buf.loadError("failed to parse OAUTH2 response")
-	if parsed-headerLen < int(h.BodyLength) {
+	buf.buffer.IncreaseParseLim(int64(h.BodyLength))
+	buf.parseOAUTH2RespBody(r)
+	buf.checkError("failed to parse OAUTH2 response")
+	if buf.err == nil && buf.buffer.GetParseLim() > 0 {
 		buf.createError(ErrIncorrectBodyLen, "failed to parse OAUTH2 response")
+		return
 	}
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2RespBody(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2RespBody(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.parseOAUTH2RespReturnCode(r)
+	buf.parseOAUTH2RespReturnCode(r)
 	if r.ReturnCode != CubeOAUTH2ErrCodeOK {
-		parsed += buf.parseOAUTH2ErrString(r)
+		buf.parseOAUTH2ErrString(r)
 	} else {
-		parsed += buf.parseOAUTH2ClientID(r)
-		parsed += buf.parseOAUTH2ClientType(r)
-		parsed += buf.parseOAUTH2Username(r)
-		parsed += buf.parseOAUTH2ExpiresInInfo(r)
-		parsed += buf.parseOAUTH2UserID(r)
+		buf.parseOAUTH2ClientID(r)
+		buf.parseOAUTH2ClientType(r)
+		buf.parseOAUTH2Username(r)
+		buf.parseOAUTH2ExpiresInInfo(r)
+		buf.parseOAUTH2UserID(r)
 	}
-	buf.loadError("failed to parse OAUTH2 response body")
+	buf.checkError("failed to parse OAUTH2 response body")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2RespReturnCode(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2RespReturnCode(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseInt32(&r.ReturnCode)
-	buf.loadError("failed to parse return code")
+	buf.buffer.ParseInt32(&r.ReturnCode)
+	buf.checkError("failed to parse return code")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2ErrString(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2ErrString(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseString(&r.ErrorString)
-	buf.loadError("failed to parse error string")
+	buf.buffer.ParseString(&r.ErrorString)
+	buf.checkError("failed to parse error string")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2ClientID(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2ClientID(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseString(&r.CliendID)
-	buf.loadError("failed to parse client id")
+	buf.buffer.ParseString(&r.CliendID)
+	buf.checkError("failed to parse client id")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2ClientType(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2ClientType(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseInt32(&r.ClientType)
-	buf.loadError("failed to parse client type")
+	buf.buffer.ParseInt32(&r.ClientType)
+	buf.checkError("failed to parse client type")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2Username(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2Username(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseString(&r.Username)
-	buf.loadError("failed to parse username")
+	buf.buffer.ParseString(&r.Username)
+	buf.checkError("failed to parse username")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2ExpiresInInfo(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2ExpiresInInfo(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseInt32(&r.ExpiresIn)
-	buf.loadError("failed to parse expires_in data")
+	buf.buffer.ParseInt32(&r.ExpiresIn)
+	buf.checkError("failed to parse expires_in data")
 	return
 }
 
-func (buf *RespBuffer) parseOAUTH2UserID(r *ResponseOAUTH2) (parsed int) {
+func (buf *RespBuffer) parseOAUTH2UserID(r *ResponseOAUTH2) {
 	if buf.err != nil {
 		return
 	}
-	parsed += buf.buffer.ParseInt64(&r.UserID)
-	buf.loadError("failed to parse user id")
+	buf.buffer.ParseInt64(&r.UserID)
+	buf.checkError("failed to parse user id")
 	return
 }
