@@ -40,7 +40,6 @@ func checkStringFlag(flag *string, flagName string, pos int) int {
 		fs.Set(flagName, fs.Arg(pos))
 		if *flag == "" {
 			fmt.Println("expected " + flagName)
-			fs.Usage()
 			os.Exit(-1)
 		}
 		return pos + 1
@@ -53,7 +52,6 @@ func checkIntFlag(flag *int, flagName string, pos int) int {
 		fs.Set(flagName, fs.Arg(pos))
 		if *flag == 0 {
 			fmt.Println("expected " + flagName)
-			fs.Usage()
 			os.Exit(-1)
 		}
 		return pos + 1
@@ -65,7 +63,6 @@ const buffLen = 16
 
 func main() {
 	if err := fs.Parse(os.Args[1:]); err != nil {
-		fs.Usage()
 		os.Exit(-1)
 	}
 

@@ -6,7 +6,7 @@ make all - test and build
 
 ./cube host port token scope - run
 
-./cube -h for help 
+./cube -help for help 
 
 make test - test
 
