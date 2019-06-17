@@ -5,48 +5,50 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ParseError struct {
+// Error errors
+type Error struct {
 	msg string
 }
 
-func (e *ParseError) Error() string {
+// Error imlements error interface
+func (e *Error) Error() string {
 	return e.msg
 }
 
 var (
 	// ErrNotEnoughData not enough data to parse
-	ErrNotEnoughData = &ParseError{
+	ErrNotEnoughData = &Error{
 		msg: "oauth2: Not enough data",
 	}
 	// ErrIncorrectData can't parse due to incorrect data
-	ErrIncorrectData = &ParseError{
+	ErrIncorrectData = &Error{
 		msg: "oauth2: Incorrect data",
 	}
 	// ErrStringTooLong string is too long to write
-	ErrStringTooLong = &ParseError{
+	ErrStringTooLong = &Error{
 		msg: "oauth2: String is too long",
 	}
 	// ErrBadWritingPos can't write on this position
-	ErrBadWritingPos = &ParseError{
+	ErrBadWritingPos = &Error{
 		msg: "oauth2: Can't write to this position",
 	}
 	// ErrIncorrectBodyLen incorrect body length
-	ErrIncorrectBodyLen = &ParseError{
+	ErrIncorrectBodyLen = &Error{
 		msg: "oauth2: Incorrect body length",
 	}
 	// ErrIncorrectSVCID incorrect svc id
-	ErrIncorrectSVCID = &ParseError{
+	ErrIncorrectSVCID = &Error{
 		msg: "oauth2: Incorrect svc id",
 	}
 	// ErrUndefined error is not supported
-	ErrUndefined = &ParseError{
+	ErrUndefined = &Error{
 		msg: "oauth2: error is not supported",
 	}
 )
 
-func switchError(e error) *ParseError {
+func switchError(e error) *Error {
 	switch c := errors.Cause(e).(type) {
-	case *cubeapi.ParseError:
+	case *cubeapi.Error:
 		switch c {
 		case cubeapi.ErrNotEnoughData:
 			return ErrNotEnoughData
@@ -63,10 +65,10 @@ func switchError(e error) *ParseError {
 		default:
 			return ErrUndefined
 		}
-	case *ParseError:
+	case *Error:
 		return c
 	default:
-		return &ParseError{
+		return &Error{
 			msg: c.Error(),
 		}
 	}

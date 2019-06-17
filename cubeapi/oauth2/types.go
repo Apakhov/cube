@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// ResponseOAUTH2 represents oauth2 response
 type ResponseOAUTH2 struct {
 	ReturnCode  int32
 	CliendID    string

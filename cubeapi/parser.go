@@ -7,20 +7,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+// RespBuffer struct for parsing data
 type RespBuffer struct {
 	buffer *bytes.Buffer
 }
 
+// CreateRespBuffer creates RespBuffer
 func CreateRespBuffer(buf []byte) *RespBuffer {
 	return &RespBuffer{
 		buffer: bytes.NewBuffer(buf),
 	}
 }
 
+// Len returns current length of buffer
 func (buf *RespBuffer) Len() int {
 	return buf.buffer.Len()
 }
 
+// ParseHeader parses header
 func (buf *RespBuffer) ParseHeader(h *Header) error {
 	err := buf.ParseInt32(&h.SvcID)
 	if err != nil {
@@ -37,6 +41,7 @@ func (buf *RespBuffer) ParseHeader(h *Header) error {
 	return nil
 }
 
+// ParseInt32 parses int32
 func (buf *RespBuffer) ParseInt32(i *int32) error {
 	if buf.Len() < int32Len {
 		return errors.Wrap(ErrNotEnoughData, "failed to parse int32")
@@ -45,6 +50,7 @@ func (buf *RespBuffer) ParseInt32(i *int32) error {
 	return nil
 }
 
+// ParseInt64 parses int64
 func (buf *RespBuffer) ParseInt64(i *int64) error {
 	if buf.Len() < int64Len {
 		return errors.Wrap(ErrNotEnoughData, "failed to parse int64")
@@ -53,6 +59,7 @@ func (buf *RespBuffer) ParseInt64(i *int64) error {
 	return nil
 }
 
+// ParseString parses string
 func (buf *RespBuffer) ParseString(s *string) error {
 	var strLen int32
 	err := buf.parseStrLen(&strLen)

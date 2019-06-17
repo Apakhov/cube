@@ -5,20 +5,24 @@ import (
 	"github.com/pkg/errors"
 )
 
+// RespBuffer struct for parsing oauth2 response
 type RespBuffer struct {
 	buffer *cubeapi.RespBuffer
 }
 
+// CreateRespBuffer creates RespBuffer
 func CreateRespBuffer(buf []byte) *RespBuffer {
 	return &RespBuffer{
 		buffer: cubeapi.CreateRespBuffer(buf),
 	}
 }
 
+// Len returns current len of buffer
 func (buf *RespBuffer) Len() int {
 	return buf.buffer.Len()
 }
 
+// ParseOAUTH2Resp parses oauth2 response
 func (buf *RespBuffer) ParseOAUTH2Resp() (r ResponseOAUTH2, err error) {
 	defer func() {
 		if err != nil {
@@ -31,11 +35,11 @@ func (buf *RespBuffer) ParseOAUTH2Resp() (r ResponseOAUTH2, err error) {
 		return
 	}
 	if h.SvcID != cubeOAUTH2SvcID {
-		err = errors.Wrap(cubeapi.ErrIncorrectSVCID, "failed to parse OAUTH2 response")
+		err = errors.Wrap(ErrIncorrectSVCID, "failed to parse OAUTH2 response")
 		return
 	}
 	if int(h.BodyLength) != buf.Len() {
-		err = errors.Wrap(cubeapi.ErrIncorrectBodyLen, "failed to parse OAUTH2 response")
+		err = errors.Wrap(ErrIncorrectBodyLen, "failed to parse OAUTH2 response")
 		return
 	}
 	r, err = buf.parseOAUTH2RespBody()

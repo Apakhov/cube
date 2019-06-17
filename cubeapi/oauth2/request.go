@@ -5,14 +5,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SendBuffer struct for encoding oauth2 request
 type SendBuffer struct {
 	buffer *cubeapi.SendBuffer
 }
 
+// Bytes returns request as bytes
 func (buf *SendBuffer) Bytes() []byte {
 	return buf.buffer.Bytes()
 }
 
+// CreateOAUTH2Request creates request based on tocken and scope
 func CreateOAUTH2Request(token, scope string) (*SendBuffer, error) {
 	buf := &SendBuffer{cubeapi.CreateSendBuffer()}
 	bodyLen, err := buf.writeOAUTH2Body(token, scope)
