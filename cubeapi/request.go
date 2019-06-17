@@ -17,7 +17,7 @@ func (buf *SendBuffer) Bytes() []byte {
 	return buf.buffer
 }
 
-// Len returns current len of buffer
+// Len returns current length of buffer
 func (buf *SendBuffer) Len() int {
 	return len(buf.buffer)
 }
