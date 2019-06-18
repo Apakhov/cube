@@ -3,7 +3,6 @@ package cubeapi
 import (
 	"bytes"
 	"encoding/binary"
-	"sync/atomic"
 
 	"github.com/pkg/errors"
 )
@@ -15,7 +14,7 @@ import (
 // async mode - using Parse commands in separate go-routine
 type RespBuffer struct {
 	buffer         *bytes.Buffer
-	bytesAvailable *int64
+	bytesAvailable int64
 	parseLimit     int64
 	finished       chan struct{}
 	end            chan struct{}
@@ -30,10 +29,9 @@ func CreateRespBuffer(buf []byte) *RespBuffer {
 		finished:       make(chan struct{}, 1),
 		end:            make(chan struct{}, 1),
 		finLock:        make(chan struct{}, 1),
-		bytesAvailable: new(int64),
+		bytesAvailable: int64(len(buf)),
 		parseLimit:     0,
 	}
-	atomic.StoreInt64(res.bytesAvailable, int64(len(buf)))
 	return res
 }
 
@@ -50,7 +48,7 @@ func (buf *RespBuffer) GetParseLim() int64 {
 func (buf *RespBuffer) Write(part []byte) {
 	buf.finLock <- struct{}{}
 	buf.buffer.Write(part)
-	atomic.AddInt64(buf.bytesAvailable, int64(len(part)))
+	buf.bytesAvailable += int64(len(part))
 	<-buf.finLock
 }
 
@@ -108,10 +106,8 @@ func (buf *RespBuffer) WaitChan() <-chan struct{} {
 func (buf *RespBuffer) blockForBytes(amount int64) bool {
 	for {
 		buf.finLock <- struct{}{}
-
-		av := atomic.LoadInt64(buf.bytesAvailable)
-		if int64(amount) <= av {
-			atomic.AddInt64(buf.bytesAvailable, -amount)
+		if int64(amount) <= buf.bytesAvailable {
+			buf.bytesAvailable -= amount
 			<-buf.finLock
 			return true
 		}
